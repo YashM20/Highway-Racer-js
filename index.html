@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Highway Racer - An exciting car racing game where you avoid obstacles and collect power-ups to achieve the highest score">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Highway Racer</title>
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="css/notifications.css" as="style">
+    <link rel="preload" href="js/app.js" as="script" type="module">
+    <link rel="preload" href="js/constants.js" as="script" type="module">
+    <link rel="preload" href="assets/images/player_car.png" as="image">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Sound effects library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/notifications.css">
+    
+    <!-- Prevent touch delay on mobile -->
+    <style>
+        * {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 h-screen flex flex-col items-center justify-center overflow-hidden">
+    <!-- Game Container -->
+    <div id="game-container" class="relative w-full h-full max-w-md max-h-[85vh] overflow-hidden">
+        <!-- Notifications Container -->
+        <div id="notifications"></div>
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="game-screen">
+            <h1 class="game-title">Highway Racer</h1>
+            <p class="game-subtitle">Avoid obstacles and survive as long as possible!</p>
+            
+            <div class="controls-info">
+                <h2>Controls:</h2>
+                <p>← → Arrow Keys or Swipe: Change lanes</p>
+                <p>↑ Arrow Key or Tap Screen: Speed up</p>
+            </div>
+            
+            <button id="start-button" class="game-button">
+                START GAME
+            </button>
+            
+            <!-- Difficulty selector -->
+            <div class="difficulty-selector">
+                <h3 class="text-white mb-2">Select Difficulty:</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="easy-button" class="difficulty-button easy">Easy</button>
+                    <button id="medium-button" class="difficulty-button medium active">Medium</button>
+                    <button id="hard-button" class="difficulty-button hard">Hard</button>
+                    <button id="extreme-button" class="difficulty-button extreme">Extreme</button>
+                </div>
+            </div>
+            
+            <div class="score-display">
+                <p>High Score: <span id="high-score">0</span></p>
+            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="game-screen hidden">
+            <h1 class="game-title text-red-500">GAME OVER</h1>
+            <p class="text-2xl mb-2">Distance: <span id="final-score">0</span></p>
+            <p class="mb-6">High Score: <span id="final-high-score">0</span></p>
+            
+            <button id="restart-button" class="game-button">
+                PLAY AGAIN
+            </button>
+        </div>
+        
+        <!-- Settings Button -->
+        <button id="settings-button" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full z-30 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
+        
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="absolute inset-x-0 top-0 bg-gray-800 p-4 rounded-b-lg shadow-lg z-30 transform -translate-y-full transition-transform duration-300">
+            <h2 class="settings-title">Settings</h2>
+            
+            <div class="settings-item">
+                <span>Music</span>
+                <label class="switch">
+                    <input type="checkbox" id="music-toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <div class="settings-item">
+                <span>Sound Effects</span>
+                <label class="switch">
+                    <input type="checkbox" id="sfx-toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <button id="close-settings" class="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded">
+                Close
+            </button>
+        </div>
+        
+        <!-- Game Canvas -->
+        <canvas id="game-canvas" class="w-full h-full"></canvas>
+        
+        <!-- Game UI -->
+        <div id="game-ui" class="absolute inset-0 pointer-events-none hidden">
+            <!-- Stats Container -->
+            <div id="stats-container">
+                <!-- Lives Stat -->
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <img src="assets/images/heart.png" alt="Lives">
+                    </div>
+                    <div class="stat-label">Lives:</div>
+                    <div class="stat-value" id="lives">3</div>
+                </div>
+                
+                <!-- Score Stat -->
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <img src="assets/images/coin.png" alt="Score">
+                    </div>
+                    <div class="stat-label">Score:</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                
+                <!-- Speed Stat -->
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full text-yellow-400">
+                            <path d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-label">Speed:</div>
+                    <div class="stat-value"><span id="speed">1</span>x</div>
+                </div>
+            </div>
+            
+            <!-- Original UI elements (now hidden via CSS) -->
+            <div id="score-display" class="ui-element">
+                <p>Distance: <span id="score-old">0</span></p>
+            </div>
+            
+            <!-- Speed Display -->
+            <div id="speed-display" class="ui-element">
+                <p>Speed: <span id="speed-old">1</span>x</p>
+            </div>
+            
+            <!-- Lives Display -->
+            <div id="lives-display" class="ui-element">
+                <p>Lives: <span id="lives-old">3</span></p>
+            </div>
+        </div>
+        
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" class="hidden">
+            <button id="left-button" class="control-button">
+                ←
+            </button>
+            <button id="accelerate-button" class="control-button">
+                ↑
+            </button>
+            <button id="right-button" class="control-button">
+                →
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script type="module" src="js/app.js"></script>
+    
+    <!-- Disable pull-to-refresh on mobile -->
+    <script>
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html> 
